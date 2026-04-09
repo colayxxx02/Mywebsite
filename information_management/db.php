@@ -1,14 +1,15 @@
 <?php
-$servername = "localhost";
-$username = "root";     // Default for XAMPP/WAMP
-$password = "";         // Default for XAMPP/WAMP
-$dbname = "library_db"; // Make sure this matches your DB name in phpMyAdmin
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-// Create connection
-$conn = mysqli_connect($servername, $username, $password, $dbname);
+$host = '127.0.0.1';
+$user = 'root';
+$pass = 'root123';
+$dbname = 'booksphere_db';
 
-// Check if the connection works
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+$conn = new mysqli($host, $user, $pass, $dbname);
+
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 ?>

@@ -1,0 +1,7 @@
+{
+  "name": "PHP + MySQL",
+  "image": "mcr.microsoft.com/devcontainers/php:8.2",
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y mysql-server && sudo service mysql start",
+  "postStartCommand": "sudo service mysql start",
+  "forwardPorts": [8080, 3306]
+}
