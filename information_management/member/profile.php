@@ -63,99 +63,145 @@ $total_overdue = $conn->query("SELECT COUNT(*) as count FROM transactions WHERE 
     <title>My Profile - BookShare</title>
     <link rel="stylesheet" href="../member/style.css">
 </head>
-<body>
+<body class="dashboard-page">
 
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div class="logo">📚 BookShare</div>
-        <nav>
-            <a href="dashboard.php">Dashboard</a>
-            <a href="catalog.php">Browse Books</a>
-            <a href="history.php">My History</a>
-            <a href="profile.php" class="active">My Profile</a>
-        </nav>
-        <div class="user-info">
-            Welcome, <span><?= $_SESSION['fullname'] ?></span>
-            <form method="POST" action="../logout.php" style="display:inline;">
-                <button type="submit" class="btn-logout">Logout</button>
-            </form>
+    <!-- TITLEBAR -->
+    <div class="titlebar">
+        <div class="dots">
+            <span class="dot-red"></span>
+            <span class="dot-yellow"></span>
+            <span class="dot-green"></span>
         </div>
+        <div class="title">📚 BookShare - Member Dashboard</div>
     </div>
 
-    <div class="page-wrapper">
-        <div class="page-title">My Profile</div>
-        <div class="page-subtitle">Manage your account information and password.</div>
-
-        <!-- ALERTS -->
-        <?php if ($success): ?>
-            <div class="alert alert-success"><?= $success ?></div>
-        <?php endif; ?>
-        <?php if ($error): ?>
-            <div class="alert alert-error"><?= $error ?></div>
-        <?php endif; ?>
-
-        <!-- ACCOUNT STATUS -->
-        <?php if ($user['is_on_hold'] == 1): ?>
-            <div class="on-hold-notice">
-                Account Status: <strong>On Hold</strong> until <strong><?= $user['hold_until'] ?></strong>
-            </div>
-        <?php else: ?>
-            <div class="active-notice">
-                Account Status: <strong>Active</strong>
-            </div>
-        <?php endif; ?>
-
-        <!-- STAT CARDS -->
-        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
-            <div class="stat-card">
-                <div class="stat-icon">📖</div>
-                <div class="stat-info">
-                    <div class="stat-number"><?= $total_borrowed ?></div>
-                    <div class="stat-label">Active Borrowed</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div class="stat-info">
-                    <div class="stat-number"><?= $total_returned ?></div>
-                    <div class="stat-label">Returned</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⚠️</div>
-                <div class="stat-info">
-                    <div class="stat-number" style="color:#c62828;"><?= $total_overdue ?></div>
-                    <div class="stat-label">Overdue</div>
-                </div>
+    <!-- APP SHELL WITH SIDEBAR -->
+    <div class="app-shell">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">📚 BookShare</div>
+            <nav>
+                <a href="dashboard.php" class="nav-link">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="catalog.php" class="nav-link">
+                    <span class="nav-icon">📖</span>
+                    Browse Books
+                </a>
+                <a href="history.php" class="nav-link">
+                    <span class="nav-icon">📜</span>
+                    My History
+                </a>
+                <a href="profile.php" class="nav-link active">
+                    <span class="nav-icon">👤</span>
+                    My Profile
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <form method="POST" action="../logout.php">
+                    <button type="submit">🚪 Logout</button>
+                </form>
             </div>
         </div>
 
-        <!-- PROFILE INFO -->
-        <div class="profile-box">
-            <div class="profile-row">
-                <span class="profile-label">User ID</span>
-                <span class="profile-value"><?= $user['user_id'] ?></span>
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">My Profile</div>
+                    <div class="page-subtitle">Manage your account information and password.</div>
+                </div>
             </div>
-            <div class="profile-row">
-                <span class="profile-label">Full Name</span>
-                <span class="profile-value"><?= $user['fullname'] ?></span>
+
+            <!-- ALERTS -->
+            <?php if ($success): ?>
+                <div class="alert alert-success">
+                    ✅ <?= $success ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($error): ?>
+                <div class="alert alert-error">
+                    ⚠️ <?= $error ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- ACCOUNT STATUS -->
+            <div class="profile-card">
+                <div class="profile-row">
+                    <span class="profile-label">Account Status</span>
+                    <span>
+                        <?php if ($user['is_on_hold'] == 1): ?>
+                            <span class="status-badge status-onhold">
+                                🔴 On Hold until <?= $user['hold_until'] ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="status-badge status-active">
+                                🟢 Active
+                            </span>
+                        <?php endif; ?>
+                    </span>
+                </div>
             </div>
-            <div class="profile-row">
-                <span class="profile-label">Email</span>
-                <span class="profile-value"><?= $user['email'] ?></span>
+
+            <!-- STAT CARDS -->
+            <div class="dash-stat-grid">
+                <div class="dash-stat-card">
+                    <div class="stat-icon">📖</div>
+                    <div>
+                        <div class="stat-number"><?= $total_borrowed ?></div>
+                        <div class="stat-label">Active Borrowed</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div>
+                        <div class="stat-number"><?= $total_returned ?></div>
+                        <div class="stat-label">Returned</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card overdue-card" style="<?= $total_overdue > 0 ? '' : 'opacity:0.7;' ?>">
+                    <div class="stat-icon">⚠️</div>
+                    <div>
+                        <div class="stat-number overdue-number"><?= $total_overdue ?></div>
+                        <div class="stat-label" style="color:#c62828;">Overdue</div>
+                    </div>
+                </div>
             </div>
-            <div class="profile-row">
-                <span class="profile-label">Role</span>
-                <span class="profile-value"><?= ucfirst($user['role']) ?></span>
+
+            <!-- PROFILE INFORMATION -->
+            <div class="profile-card">
+                <h3>Account Information</h3>
+                <div class="profile-row">
+                    <span class="profile-label">User ID</span>
+                    <span class="profile-value"><?= $user['user_id'] ?></span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Full Name</span>
+                    <span class="profile-value"><?= $user['fullname'] ?></span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Email Address</span>
+                    <span class="profile-value"><?= $user['email'] ?></span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Role</span>
+                    <span class="profile-value">
+                        <span class="badge badge-active"><?= ucfirst($user['role']) ?></span>
+                    </span>
+                </div>
+                <div class="profile-row">
+                    <span class="profile-label">Member Since</span>
+                    <span class="profile-value"><?= date('F j, Y', strtotime($user['created_at'])) ?></span>
+                </div>
             </div>
-            <div class="profile-row">
-                <span class="profile-label">Member Since</span>
-                <span class="profile-value"><?= $user['created_at'] ?></span>
+
+            <!-- ACTION BUTTONS -->
+            <div class="btn-group">
+                <button class="btn-primary" onclick="document.getElementById('editModal').style.display='flex'">✏️ Edit Profile</button>
+                <button class="btn-secondary" onclick="document.getElementById('passwordModal').style.display='flex'">🔐 Change Password</button>
             </div>
         </div>
-
-        <button class="btn-edit-profile" onclick="document.getElementById('editModal').style.display='block'">Edit Profile</button>
-        <button class="btn-change-pass" onclick="document.getElementById('passwordModal').style.display='block'">Change Password</button>
     </div>
 
     <!-- EDIT PROFILE MODAL -->
@@ -166,14 +212,16 @@ $total_overdue = $conn->query("SELECT COUNT(*) as count FROM transactions WHERE 
             <form method="POST">
                 <div class="form-group">
                     <label>Full Name</label>
-                    <input type="text" name="fullname" value="<?= $user['fullname'] ?>" required>
+                    <input type="text" name="fullname" value="<?= htmlspecialchars($user['fullname']) ?>" required>
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email" value="<?= $user['email'] ?>" required>
+                    <label>Email Address</label>
+                    <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" required>
                 </div>
-                <button type="submit" name="update_profile" class="btn-save">Save Changes</button>
-                <button type="button" class="btn-cancel" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+                <div style="display:flex;gap:10px;">
+                    <button type="submit" name="update_profile" class="btn-primary" style="flex:1;">Save Changes</button>
+                    <button type="button" class="btn-secondary" style="flex:1;" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
@@ -196,15 +244,17 @@ $total_overdue = $conn->query("SELECT COUNT(*) as count FROM transactions WHERE 
                     <label>Confirm Password</label>
                     <input type="password" name="confirm_password" required>
                 </div>
-                <button type="submit" name="change_password" class="btn-save">Change Password</button>
-                <button type="button" class="btn-cancel" onclick="document.getElementById('passwordModal').style.display='none'">Cancel</button>
+                <div style="display:flex;gap:10px;">
+                    <button type="submit" name="change_password" class="btn-primary" style="flex:1;">Change Password</button>
+                    <button type="button" class="btn-secondary" style="flex:1;" onclick="document.getElementById('passwordModal').style.display='none'">Cancel</button>
+                </div>
             </form>
         </div>
     </div>
 
     <script>
         window.onclick = function(e) {
-            if (e.target.classList.contains('modal')) {
+            if (e.target.id === 'editModal' || e.target.id === 'passwordModal') {
                 e.target.style.display = 'none';
             }
         }

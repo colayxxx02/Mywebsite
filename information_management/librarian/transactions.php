@@ -7,7 +7,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'librarian') {
     exit();
 }
 
-// BORROW BOOK
 if (isset($_POST['borrow_book'])) {
     $transaction_id = $_POST['transaction_id'];
     $user_id = $_POST['user_id'];
@@ -25,7 +24,6 @@ if (isset($_POST['borrow_book'])) {
     }
 }
 
-// RETURN BOOK
 if (isset($_POST['return_book'])) {
     $transaction_id = $_POST['transaction_id'];
     $user_id = $_POST['user_id'];
@@ -42,7 +40,6 @@ if (isset($_POST['return_book'])) {
     }
 }
 
-// MANUAL HOLD
 if (isset($_POST['hold_account'])) {
     $user_id = $_POST['user_id'];
     $hold_until = date('Y-m-d', strtotime('+1 week'));
@@ -58,7 +55,6 @@ $transactions = $conn->query("SELECT t.*, u.fullname, u.user_id as uid, u.is_on_
 $available_books = $conn->query("SELECT * FROM books WHERE status='available'");
 $members = $conn->query("SELECT * FROM users WHERE role='member'");
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,99 +62,93 @@ $members = $conn->query("SELECT * FROM users WHERE role='member'");
     <title>Transactions - BookShare</title>
     <link rel="stylesheet" href="../librarian/style.css">
 </head>
-<body>
+<body class="dashboard-page">
 
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div class="logo">📚 BookShare</div>
-        <nav>
-            <a href="dashboard.php">Dashboard</a>
-            <a href="books.php">Books</a>
-            <a href="transactions.php" class="active">Transactions</a>
-            <a href="overdue.php">Overdue</a>
-            <a href="maintenance.php">Maintenance</a>
-        </nav>
-        <div class="user-info">
-            Welcome, <span><?= $_SESSION['fullname'] ?></span>
-            <form method="POST" action="../logout.php" style="display:inline;">
-                <button type="submit" class="btn-logout">Logout</button>
-            </form>
+    <div class="titlebar">
+        <div class="dots">
+            <span class="dot-red"></span>
+            <span class="dot-yellow"></span>
+            <span class="dot-green"></span>
         </div>
+        <span class="title">BookShare Library System</span>
     </div>
 
-    <div class="page-wrapper">
-        <div class="page-title">Transactions</div>
-        <div class="page-subtitle">Manage book borrowing and return records.</div>
+    <div class="app-shell">
 
-        <?php if (isset($borrow_error)): ?>
-            <div class="alert alert-error"><?= $borrow_error ?></div>
-        <?php endif; ?>
+        <div class="sidebar">
+            <div class="logo">📚 BookShare</div>
+            <nav>
+                <a href="dashboard.php"><span class="nav-icon">🏠</span> Dashboard</a>
+                <a href="books.php"><span class="nav-icon">📚</span> Books</a>
+                <a href="transactions.php" class="active"><span class="nav-icon">🔄</span> Transactions</a>
+                <a href="overdue.php"><span class="nav-icon">⚠️</span> Overdue</a>
+                <a href="maintenance.php"><span class="nav-icon">🛠️</span> Maintenance</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">👤 <?= $_SESSION['fullname'] ?></div>
+                <form method="POST" action="../logout.php">
+                    <button type="submit">🚪 Logout</button>
+                </form>
+            </div>
+        </div>
 
-        <button class="btn-add" onclick="document.getElementById('borrowModal').style.display='block'">+ Borrow Book</button>
+        <div class="main-content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Transactions</div>
+                    <div class="page-subtitle">Manage book borrowing and return records.</div>
+                </div>
+                <button class="btn-add" onclick="document.getElementById('borrowModal').style.display='block'">+ Borrow Book</button>
+            </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Transaction ID</th>
-                        <th>Member</th>
-                        <th>Book</th>
-                        <th>Borrow Date</th>
-                        <th>Due Date</th>
-                        <th>Return Date</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($transactions->num_rows == 0): ?>
-                        <tr><td colspan="8">
-                            <div class="empty-state">
-                                <div class="empty-icon">📋</div>
-                                <p>No transactions found.</p>
-                            </div>
-                        </td></tr>
-                    <?php else: ?>
-                    <?php while ($row = $transactions->fetch_assoc()):
-                        $today = date('Y-m-d');
-                        $is_returned = $row['return_date'] != null;
-                        $is_overdue = !$is_returned && $today > $row['due_date'];
-                        $status_class = $is_returned ? 'returned' : ($is_overdue ? 'overdue' : 'active');
-                        $status_text = $is_returned ? 'Returned' : ($is_overdue ? 'Overdue' : 'Active');
-                    ?>
-                    <tr>
-                        <td><?= $row['transaction_id'] ?></td>
-                        <td><?= $row['fullname'] ?></td>
-                        <td><?= $row['title'] ?></td>
-                        <td><?= $row['borrow_date'] ?></td>
-                        <td><?= $row['due_date'] ?></td>
-                        <td><?= $row['return_date'] ?? '—' ?></td>
-                        <td><span class="badge badge-<?= $status_class ?>"><?= $status_text ?></span></td>
-                        <td>
-                            <?php if (!$is_returned): ?>
-                                <button class="btn-edit" onclick="openReturn(
-                                    '<?= $row['transaction_id'] ?>',
-                                    '<?= $row['user_id'] ?>',
-                                    '<?= $row['book_id'] ?>',
-                                    '<?= addslashes($row['title']) ?>',
-                                    '<?= addslashes($row['fullname']) ?>'
-                                )">Return</button>
-                            <?php endif; ?>
+            <?php if (isset($borrow_error)): ?>
+                <div class="alert alert-error"><?= $borrow_error ?></div>
+            <?php endif; ?>
 
-                            <?php if ($is_overdue && $row['is_on_hold'] == 0): ?>
-                                <button class="btn-action" onclick="openHold(
-                                    '<?= $row['user_id'] ?>',
-                                    '<?= addslashes($row['fullname']) ?>'
-                                )">Hold Account</button>
-                            <?php elseif ($row['is_on_hold'] == 1): ?>
-                                <span class="badge badge-hold">On Hold until <?= $row['hold_until'] ?></span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Trans ID</th><th>Member</th><th>Book</th>
+                            <th>Borrow Date</th><th>Due Date</th><th>Return Date</th>
+                            <th>Status</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($transactions->num_rows == 0): ?>
+                            <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><p>No transactions found.</p></div></td></tr>
+                        <?php else: ?>
+                        <?php while ($row = $transactions->fetch_assoc()):
+                            $today = date('Y-m-d');
+                            $is_returned = $row['return_date'] != null;
+                            $is_overdue = !$is_returned && $today > $row['due_date'];
+                            $status_class = $is_returned ? 'returned' : ($is_overdue ? 'overdue' : 'active');
+                            $status_text  = $is_returned ? 'Returned' : ($is_overdue ? 'Overdue' : 'Active');
+                        ?>
+                        <tr>
+                            <td><?= $row['transaction_id'] ?></td>
+                            <td><?= $row['fullname'] ?></td>
+                            <td><?= $row['title'] ?></td>
+                            <td><?= $row['borrow_date'] ?></td>
+                            <td><?= $row['due_date'] ?></td>
+                            <td><?= $row['return_date'] ?? '—' ?></td>
+                            <td><span class="badge badge-<?= $status_class ?>"><?= $status_text ?></span></td>
+                            <td>
+                                <?php if (!$is_returned): ?>
+                                    <button class="btn-edit" onclick="openReturn('<?= $row['transaction_id'] ?>','<?= $row['user_id'] ?>','<?= $row['book_id'] ?>','<?= addslashes($row['title']) ?>','<?= addslashes($row['fullname']) ?>')">Return</button>
+                                <?php endif; ?>
+                                <?php if ($is_overdue && $row['is_on_hold'] == 0): ?>
+                                    <button class="btn-action" onclick="openHold('<?= $row['user_id'] ?>','<?= addslashes($row['fullname']) ?>')">Hold</button>
+                                <?php elseif ($row['is_on_hold'] == 1): ?>
+                                    <span class="badge badge-hold">On Hold</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -168,10 +158,7 @@ $members = $conn->query("SELECT * FROM users WHERE role='member'");
             <button class="modal-close" onclick="document.getElementById('borrowModal').style.display='none'">&times;</button>
             <h3>Borrow Book</h3>
             <form method="POST">
-                <div class="form-group">
-                    <label>Transaction ID</label>
-                    <input type="number" name="transaction_id" required>
-                </div>
+                <div class="form-group"><label>Transaction ID</label><input type="number" name="transaction_id" required></div>
                 <div class="form-group">
                     <label>Member</label>
                     <select name="user_id" required>
@@ -190,14 +177,8 @@ $members = $conn->query("SELECT * FROM users WHERE role='member'");
                         <?php endwhile; ?>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Borrow Date</label>
-                    <input type="date" name="borrow_date" required>
-                </div>
-                <div class="form-group">
-                    <label>Due Date</label>
-                    <input type="date" name="due_date" required>
-                </div>
+                <div class="form-group"><label>Borrow Date</label><input type="date" name="borrow_date" required></div>
+                <div class="form-group"><label>Due Date</label><input type="date" name="due_date" required></div>
                 <button type="submit" name="borrow_book" class="btn-save">Confirm Borrow</button>
                 <button type="button" class="btn-cancel" onclick="document.getElementById('borrowModal').style.display='none'">Cancel</button>
             </form>
@@ -227,8 +208,8 @@ $members = $conn->query("SELECT * FROM users WHERE role='member'");
         <div class="modal-content">
             <button class="modal-close" onclick="document.getElementById('holdModal').style.display='none'">&times;</button>
             <h3>Hold Account</h3>
-            <p class="delete-warning">Are you sure you want to hold the account of <strong><span id="hold_member_name"></span></strong>?</p>
-            <p style="color:#888; font-size:14px; margin-bottom:20px;">Account will be on hold for <strong>1 week</strong>.</p>
+            <p class="delete-warning">Hold account of <strong><span id="hold_member_name"></span></strong>?</p>
+            <p style="color:#888;font-size:14px;margin-bottom:20px;">Account will be on hold for <strong>1 week</strong>.</p>
             <form method="POST">
                 <input type="hidden" name="user_id" id="hold_user_id">
                 <button type="submit" name="hold_account" class="btn-save" style="background:#c62828;">Confirm Hold</button>
@@ -238,26 +219,20 @@ $members = $conn->query("SELECT * FROM users WHERE role='member'");
     </div>
 
     <script>
-        function openReturn(transaction_id, user_id, book_id, title, member) {
-            document.getElementById('return_transaction_id').value = transaction_id;
-            document.getElementById('return_user_id').value = user_id;
-            document.getElementById('return_book_id').value = book_id;
-            document.getElementById('return_book_title').innerText = title;
-            document.getElementById('return_member').innerText = member;
-            document.getElementById('returnModal').style.display = 'block';
+        function openReturn(tid,uid,bid,title,member){
+            document.getElementById('return_transaction_id').value=tid;
+            document.getElementById('return_user_id').value=uid;
+            document.getElementById('return_book_id').value=bid;
+            document.getElementById('return_book_title').innerText=title;
+            document.getElementById('return_member').innerText=member;
+            document.getElementById('returnModal').style.display='block';
         }
-
-        function openHold(user_id, fullname) {
-            document.getElementById('hold_user_id').value = user_id;
-            document.getElementById('hold_member_name').innerText = fullname;
-            document.getElementById('holdModal').style.display = 'block';
+        function openHold(uid,name){
+            document.getElementById('hold_user_id').value=uid;
+            document.getElementById('hold_member_name').innerText=name;
+            document.getElementById('holdModal').style.display='block';
         }
-
-        window.onclick = function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        }
+        window.onclick=function(e){if(e.target.classList.contains('modal'))e.target.style.display='none';}
     </script>
 </body>
 </html>

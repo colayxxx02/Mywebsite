@@ -46,123 +46,150 @@ $overdue = $conn->query("SELECT COUNT(*) as count FROM transactions WHERE user_i
     <title>Borrowing History - BookShare</title>
     <link rel="stylesheet" href="../member/style.css">
 </head>
-<body>
+<body class="dashboard-page">
 
-    <!-- TOPBAR -->
-    <div class="topbar">
-        <div class="logo">📚 BookShare</div>
-        <nav>
-            <a href="dashboard.php">Dashboard</a>
-            <a href="catalog.php">Browse Books</a>
-            <a href="history.php" class="active">My History</a>
-            <a href="profile.php">My Profile</a>
-        </nav>
-        <div class="user-info">
-            Welcome, <span><?= $_SESSION['fullname'] ?></span>
-            <form method="POST" action="../logout.php" style="display:inline;">
-                <button type="submit" class="btn-logout">Logout</button>
-            </form>
+    <!-- TITLEBAR -->
+    <div class="titlebar">
+        <div class="dots">
+            <span class="dot-red"></span>
+            <span class="dot-yellow"></span>
+            <span class="dot-green"></span>
         </div>
+        <div class="title">📚 BookShare - Member Dashboard</div>
     </div>
 
-    <div class="page-wrapper">
-        <div class="page-title">Borrowing History</div>
-        <div class="page-subtitle">View all your past and current borrowed books.</div>
-
-        <!-- STAT CARDS -->
-        <div class="stat-grid">
-            <div class="stat-card">
-                <div class="stat-icon">📚</div>
-                <div class="stat-info">
-                    <div class="stat-number"><?= $total ?></div>
-                    <div class="stat-label">Total</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📖</div>
-                <div class="stat-info">
-                    <div class="stat-number"><?= $active ?></div>
-                    <div class="stat-label">Active</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div class="stat-info">
-                    <div class="stat-number"><?= $returned ?></div>
-                    <div class="stat-label">Returned</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⚠️</div>
-                <div class="stat-info">
-                    <div class="stat-number" style="color:#c62828;"><?= $overdue ?></div>
-                    <div class="stat-label">Overdue</div>
-                </div>
+    <!-- APP SHELL WITH SIDEBAR -->
+    <div class="app-shell">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">📚 BookShare</div>
+            <nav>
+                <a href="dashboard.php" class="nav-link">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="catalog.php" class="nav-link">
+                    <span class="nav-icon">📖</span>
+                    Browse Books
+                </a>
+                <a href="history.php" class="nav-link active">
+                    <span class="nav-icon">📜</span>
+                    My History
+                </a>
+                <a href="profile.php" class="nav-link">
+                    <span class="nav-icon">👤</span>
+                    My Profile
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <form method="POST" action="../logout.php">
+                    <button type="submit">🚪 Logout</button>
+                </form>
             </div>
         </div>
 
-        <!-- SEARCH & FILTER -->
-        <form method="GET" class="filter-bar">
-            <input type="text" name="search" placeholder="Search by title or author..." value="<?= htmlspecialchars($search) ?>">
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Borrowing History</div>
+                    <div class="page-subtitle">View all your past and current borrowed books.</div>
+                </div>
+            </div>
 
-            <select name="filter_status">
-                <option value="">-- All Status --</option>
-                <option value="active" <?= $filter_status == 'active' ? 'selected' : '' ?>>Active</option>
-                <option value="returned" <?= $filter_status == 'returned' ? 'selected' : '' ?>>Returned</option>
-                <option value="overdue" <?= $filter_status == 'overdue' ? 'selected' : '' ?>>Overdue</option>
-            </select>
+            <!-- STAT CARDS -->
+            <div class="dash-stat-grid">
+                <div class="dash-stat-card">
+                    <div class="stat-icon">📚</div>
+                    <div>
+                        <div class="stat-number"><?= $total ?></div>
+                        <div class="stat-label">Total Borrowed</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="stat-icon">📖</div>
+                    <div>
+                        <div class="stat-number"><?= $active ?></div>
+                        <div class="stat-label">Currently Active</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div>
+                        <div class="stat-number"><?= $returned ?></div>
+                        <div class="stat-label">Returned</div>
+                    </div>
+                </div>
+                <div class="dash-stat-card overdue-card" style="<?= $overdue > 0 ? '' : 'opacity:0.7;' ?>">
+                    <div class="stat-icon">⚠️</div>
+                    <div>
+                        <div class="stat-number overdue-number"><?= $overdue ?></div>
+                        <div class="stat-label" style="color:#c62828;">Overdue</div>
+                    </div>
+                </div>
+            </div>
 
-            <button type="submit" class="btn-search">Search</button>
-            <a href="history.php"><button type="button" class="btn-reset">Reset</button></a>
-        </form>
+            <!-- SEARCH & FILTER -->
+            <form method="GET" class="filter-bar">
+                <input type="text" name="search" placeholder="Search by title or author..." value="<?= htmlspecialchars($search) ?>">
+                <select name="filter_status">
+                    <option value="">-- All Status --</option>
+                    <option value="active" <?= $filter_status == 'active' ? 'selected' : '' ?>>Active</option>
+                    <option value="returned" <?= $filter_status == 'returned' ? 'selected' : '' ?>>Returned</option>
+                    <option value="overdue" <?= $filter_status == 'overdue' ? 'selected' : '' ?>>Overdue</option>
+                </select>
+                <button type="submit" class="btn-primary">Search</button>
+                <a href="history.php"><button type="button" class="btn-secondary">Reset</button></a>
+            </form>
 
-        <!-- TABLE -->
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Transaction ID</th>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Category</th>
-                        <th>Borrow Date</th>
-                        <th>Due Date</th>
-                        <th>Return Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($history->num_rows == 0): ?>
-                        <tr><td colspan="8">
-                            <div class="empty-state">
-                                <div class="empty-icon">📋</div>
-                                <p>No records found.</p>
-                            </div>
-                        </td></tr>
-                    <?php else: ?>
-                    <?php while ($row = $history->fetch_assoc()):
-                        $today = date('Y-m-d');
-                        $is_returned = $row['return_date'] != null;
-                        $is_overdue = !$is_returned && $today > $row['due_date'];
-                        $status_class = $is_returned ? 'returned' : ($is_overdue ? 'overdue' : 'active');
-                        $status_text = $is_returned ? 'Returned' : ($is_overdue ? 'Overdue' : 'Active');
-                    ?>
-                    <tr>
-                        <td><?= $row['transaction_id'] ?></td>
-                        <td><?= $row['title'] ?></td>
-                        <td><?= $row['author'] ?></td>
-                        <td><?= $row['category'] ?></td>
-                        <td><?= $row['borrow_date'] ?></td>
-                        <td><?= $row['due_date'] ?></td>
-                        <td><?= $row['return_date'] ?? '—' ?></td>
-                        <td>
-                            <span class="badge badge-<?= $status_class ?>"><?= $status_text ?></span>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+            <!-- TABLE -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Borrow Date</th>
+                            <th>Due Date</th>
+                            <th>Return Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if ($history->num_rows == 0): ?>
+                            <tr><td colspan="8">
+                                <div class="no-data">
+                                    <div class="no-data-icon">📋</div>
+                                    <p class="no-data-text">No records found.</p>
+                                </div>
+                            </td></tr>
+                        <?php else: ?>
+                        <?php while ($row = $history->fetch_assoc()):
+                            $today = date('Y-m-d');
+                            $is_returned = $row['return_date'] != null;
+                            $is_overdue = !$is_returned && $today > $row['due_date'];
+                            $status_class = $is_returned ? 'badge-returned' : ($is_overdue ? 'badge-overdue' : 'badge-active');
+                            $status_text = $is_returned ? 'Returned' : ($is_overdue ? 'Overdue' : 'Active');
+                        ?>
+                        <tr>
+                            <td><?= $row['transaction_id'] ?></td>
+                            <td style="font-weight:600;color:#1a1a2e;"><?= $row['title'] ?></td>
+                            <td style="color:#666;font-size:13px;"><?= $row['author'] ?></td>
+                            <td style="color:#888;font-size:13px;"><?= $row['category'] ?></td>
+                            <td style="color:#666;font-size:13px;"><?= $row['borrow_date'] ?></td>
+                            <td style="color:#666;font-size:13px;"><?= $row['due_date'] ?></td>
+                            <td style="color:#666;font-size:13px;"><?= $row['return_date'] ?? '—' ?></td>
+                            <td>
+                                <span class="badge <?= $status_class ?>"><?= $status_text ?></span>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
