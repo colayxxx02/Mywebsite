@@ -28,42 +28,56 @@ if (isset($_POST['update_enrollment_settings'])) {
 
 // 2. ADD SUBJECT
 if (isset($_POST['add_subject'])) {
-    $code = $_POST['code']; $name = $_POST['name']; $units = $_POST['units'];
-    $day = $_POST['day']; $room = $_POST['room']; $start = $_POST['start'];
-    $end = $_POST['end']; $instructor = $_POST['instructor'];
+    $code = mysqli_real_escape_string($conn, $_POST['code']);
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $year = mysqli_real_escape_string($conn, $_POST['year_level']);
+    $units = $_POST['units'];
+    $day = $_POST['day']; 
+    $room = mysqli_real_escape_string($conn, $_POST['room']); 
+    $start = $_POST['start'];
+    $end = $_POST['end']; 
+    $instructor = mysqli_real_escape_string($conn, $_POST['instructor']);
 
-    mysqli_query($conn, "INSERT INTO subjects (subject_code, subject_name, units, sched_day, sched_time_start, sched_time_end, instructor, room) 
-                         VALUES ('$code', '$name', '$units', '$day', '$start', '$end', '$instructor', '$room')");
+    $query = "INSERT INTO subjects (subject_code, subject_name, year_level, units, sched_day, sched_time_start, sched_time_end, instructor, room) 
+              VALUES ('$code', '$name', '$year', '$units', '$day', '$start', '$end', '$instructor', '$room')";
+    
+    mysqli_query($conn, $query);
     header("Location: course_sched.php?msg=added");
     exit();
 }
 
 // 3. EDIT SUBJECT
 if (isset($_POST['update_subject'])) {
-    $id = $_POST['id']; $code = $_POST['code']; $name = $_POST['name'];
-    $units = $_POST['units']; $day = $_POST['day']; $room = $_POST['room'];
-    $start = $_POST['start']; $end = $_POST['end']; $instructor = $_POST['instructor'];
+    $id = intval($_POST['id']);
+    $code = mysqli_real_escape_string($conn, $_POST['code']);
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $year = mysqli_real_escape_string($conn, $_POST['year_level']);
+    $units = $_POST['units']; 
+    $day = $_POST['day']; 
+    $room = mysqli_real_escape_string($conn, $_POST['room']);
+    $start = $_POST['start']; 
+    $end = $_POST['end']; 
+    $instructor = mysqli_real_escape_string($conn, $_POST['instructor']);
 
-    mysqli_query($conn, "UPDATE subjects SET subject_code='$code', subject_name='$name', units='$units', sched_day='$day', 
-                         room='$room', sched_time_start='$start', sched_time_end='$end', instructor='$instructor' WHERE id=$id");
+    $query = "UPDATE subjects SET subject_code='$code', subject_name='$name', year_level='$year', units='$units', sched_day='$day', 
+              room='$room', sched_time_start='$start', sched_time_end='$end', instructor='$instructor' WHERE id=$id";
+
+    mysqli_query($conn, $query);
     header("Location: course_sched.php?msg=updated");
     exit();
 }
 
 // 4. DELETE SUBJECT
 if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
+    $id = intval($_GET['delete']);
     mysqli_query($conn, "DELETE FROM subjects WHERE id=$id");
     header("Location: course_sched.php?msg=deleted");
     exit();
 }
 
-// Fetch Current Settings
 $settings_query = mysqli_query($conn, "SELECT * FROM enrollment_settings LIMIT 1");
 $es = mysqli_fetch_assoc($settings_query);
-
-// Fetch all subjects
-$result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC");
+$result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY year_level ASC, subject_code ASC");
 ?>
 
 <!DOCTYPE html>
@@ -90,43 +104,11 @@ $result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC"
             </button>
         </div>
 
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-8">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-2 h-8 bg-blue-600 rounded-full"></div>
-                <h2 class="text-xl font-bold text-slate-800">Enrollment Period Settings</h2>
-            </div>
-            <form action="course_sched.php" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Active Semester</label>
-                    <input type="text" name="semester" value="<?php echo $es['semester'] ?? ''; ?>" placeholder="e.g. 1st Sem 2026" class="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">Start Date</label>
-                    <input type="date" name="start_date" value="<?php echo $es['start_date'] ?? ''; ?>" class="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-2">End Date</label>
-                    <input type="date" name="end_date" value="<?php echo $es['end_date'] ?? ''; ?>" class="w-full p-3 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="flex flex-col gap-1">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status</label>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="is_active" class="sr-only peer" <?php echo (isset($es['is_active']) && $es['is_active'] == 1) ? 'checked' : ''; ?>>
-                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                    </div>
-                    <button type="submit" name="update_enrollment_settings" class="ml-auto bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-black transition shadow-lg">
-                        Save Config
-                    </button>
-                </div>
-            </form>
-        </div>
-
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b border-slate-200 uppercase text-[10px] font-bold text-slate-400 tracking-widest">
                     <tr>
+                        <th class="px-6 py-4">Year Level</th>
                         <th class="px-6 py-4">Code & Description</th>
                         <th class="px-6 py-4 text-center">Units</th>
                         <th class="px-6 py-4">Schedule</th>
@@ -135,29 +117,36 @@ $result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC"
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <?php while($row = mysqli_fetch_assoc($result)): ?>
-                    <tr class="hover:bg-slate-50 transition text-sm">
-                        <td class="px-6 py-4">
-                            <span class="font-bold text-slate-900"><?php echo $row['subject_code']; ?></span><br>
-                            <span class="text-xs text-slate-500"><?php echo $row['subject_name']; ?></span>
-                        </td>
-                        <td class="px-6 py-4 text-center font-medium"><?php echo $row['units']; ?></td>
-                        <td class="px-6 py-4">
-                            <span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold"><?php echo $row['sched_day']; ?></span><br>
-                            <span class="text-xs text-slate-500">
-                                <?php echo date("h:i A", strtotime($row['sched_time_start'])); ?> - <?php echo date("h:i A", strtotime($row['sched_time_end'])); ?>
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="font-medium text-slate-700"><?php echo $row['instructor']; ?></div>
-                            <div class="text-[10px] text-slate-400 uppercase tracking-tighter">Room: <?php echo $row['room']; ?></div>
-                        </td>
-                        <td class="px-6 py-4 text-center space-x-3">
-                            <button onclick='openModal("edit", <?php echo json_encode($row); ?>)' class="text-blue-600 font-bold hover:underline">Edit</button>
-                            <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirm('Delete this subject?')" class="text-red-500 font-bold hover:underline">Delete</a>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
+                    <?php if(mysqli_num_rows($result) > 0): ?>
+                        <?php while($row = mysqli_fetch_assoc($result)): ?>
+                        <tr class="hover:bg-slate-50 transition text-sm">
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold border border-blue-100 uppercase">
+                                    <?php echo !empty($row['year_level']) ? $row['year_level'] : 'N/A'; ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="font-bold text-slate-900"><?php echo $row['subject_code']; ?></span><br>
+                                <span class="text-xs text-slate-500"><?php echo $row['subject_name']; ?></span>
+                            </td>
+                            <td class="px-6 py-4 text-center font-medium"><?php echo $row['units']; ?></td>
+                            <td class="px-6 py-4">
+                                <span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold"><?php echo $row['sched_day']; ?></span><br>
+                                <span class="text-xs text-slate-500">
+                                    <?php echo date("h:i A", strtotime($row['sched_time_start'])); ?> - <?php echo date("h:i A", strtotime($row['sched_time_end'])); ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-slate-700"><?php echo $row['instructor']; ?></div>
+                                <div class="text-[10px] text-slate-400 uppercase tracking-tighter">Room: <?php echo $row['room']; ?></div>
+                            </td>
+                            <td class="px-6 py-4 text-center space-x-3">
+                                <button onclick='openModal("edit", <?php echo json_encode($row); ?>)' class="text-blue-600 font-bold hover:underline">Edit</button>
+                                <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirm('Delete this subject?')" class="text-red-500 font-bold hover:underline">Delete</a>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -177,6 +166,17 @@ $result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC"
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Subject Code</label>
                     <input type="text" name="code" id="code" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
+                
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Year Level</label>
+                    <select name="year_level" id="year_level" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+                </div>
+
                 <div class="col-span-2 md:col-span-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Units</label>
                     <input type="number" name="units" id="units" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none">
@@ -187,14 +187,11 @@ $result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC"
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Day(s)</label>
-                    <select name="day" id="day" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none">
-                        <option value="Monday">Monday</option>
-                        <option value="Tuesday">Tuesday</option>
-                        <option value="Wednesday">Wednesday</option>
-                        <option value="Thursday">Thursday</option>
-                        <option value="Friday">Friday</option>
-                        <option value="Saturday">Saturday</option>
-                        <option value="Sunday">Sunday</option>
+                    <select name="day" id="day" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="MTH">MTH (Mon & Thu)</option>
+                        <option value="TF">TF (Tue & Fri)</option>
+                        <option value="WED">WED (Wednesday)</option>
+                        <option value="SAT">SAT (Saturday)</option>
                     </select>
                 </div>
                 <div>
@@ -244,8 +241,9 @@ $result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC"
                 document.getElementById('subject_id').value = data.id;
                 document.getElementById('code').value = data.subject_code;
                 document.getElementById('name').value = data.subject_name;
+                document.getElementById('year_level').value = data.year_level;
                 document.getElementById('units').value = data.units;
-                document.getElementById('day').value = data.sched_day;
+                document.getElementById('day').value = data.sched_day; // Will match MTH, TF, etc.
                 document.getElementById('room').value = data.room;
                 document.getElementById('start').value = data.sched_time_start;
                 document.getElementById('end').value = data.sched_time_end;
@@ -263,21 +261,18 @@ $result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC"
             modal.classList.remove('flex');
         }
 
-        // --- CONFLICT CHECKER FOR ADMIN ---
         function checkAdminConflict() {
-            // Get values from form
+            if(!form.checkValidity()){
+                form.reportValidity();
+                return;
+            }
+
             const id = document.getElementById('subject_id').value;
             const day = document.getElementById('day').value;
             const start = document.getElementById('start').value;
             const end = document.getElementById('end').value;
             const room = document.getElementById('room').value;
             const instructor = document.getElementById('instructor').value;
-
-            // Simple client-side validation first
-            if(!day || !start || !end || !room || !instructor) {
-                form.reportValidity();
-                return;
-            }
 
             const formData = new URLSearchParams();
             formData.append('id', id);
@@ -286,7 +281,7 @@ $result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC"
             formData.append('end', end);
             formData.append('room', room);
             formData.append('instructor', instructor);
-            formData.append('subject_id', 'CHECK_ADMIN'); // Trigger Admin-specific logic in app file
+            formData.append('subject_id', 'CHECK_ADMIN');
 
             fetch('../api/check_conflict.php', {
                 method: 'POST',
@@ -302,18 +297,16 @@ $result = mysqli_query($conn, "SELECT * FROM subjects ORDER BY subject_code ASC"
                         confirmButtonColor: '#1e293b'
                     });
                 } else {
-                    // If no conflict, proceed to submit form
                     submitForm();
                 }
             })
             .catch(err => {
                 console.error("Conflict Check Error:", err);
-                submitForm(); // Fallback: submit anyway if script fails
+                submitForm();
             });
         }
 
         function submitForm() {
-            // Create hidden input to simulate button click for PHP
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
             hiddenInput.name = (currentMode === 'edit') ? 'update_subject' : 'add_subject';

@@ -7,12 +7,24 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// Queries para sa Analytics Cards
+// --- UPDATED QUERIES ---
+
+// 1. Total Students
 $total_students = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM students"))['count'];
-$total_courses = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(DISTINCT course) as count FROM students"))['count'];
+
+// 2. Total Programs (Courses)
+$total_courses = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM courses"))['count'];
+
+// 3. Enrolled (Kadtong 'Enrolled' ang enrollment_status)
 $enrolled_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM students WHERE enrollment_status='Enrolled'"))['count'];
+
+// 4. Pending (Kadtong 'Pending' ang status)
 $pending_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM students WHERE enrollment_status='Pending'"))['count'];
-$graduating_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM students WHERE enrollment_status='Graduating'"))['count'];
+
+// 5. Graduating (Kini importante: gi-check nato ang 'year_level' column)
+$graduating_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM students WHERE year_level='Graduating'"))['count'];
+
+// 6. Dropped
 $dropped_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as count FROM students WHERE enrollment_status='Dropped'"))['count'];
 ?>
 
@@ -41,65 +53,57 @@ $dropped_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as coun
                 <div class="text-sm text-slate-400 font-medium bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200">
                     <?php echo date('F d, Y'); ?>
                 </div>
-                
-                <a href="../auth/logout.php" 
-                   onclick="return confirm('Are you sure you want to logout?')"
-                   class="bg-red-50 text-red-600 px-5 py-2 rounded-xl text-sm font-bold border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-200 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                </a>
+                <a href="../auth/logout.php" onclick="return confirm('Are you sure?')" class="bg-red-50 text-red-600 px-5 py-2 rounded-xl text-sm font-bold border border-red-100 hover:bg-red-600 hover:text-white transition-all">Logout</a>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center hover:shadow-md transition">
                 <div class="p-4 bg-blue-50 text-blue-600 rounded-2xl mr-4 text-2xl">👥</div>
                 <div>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Students</p>
-                    <h3 class="text-2xl font-bold text-slate-800"><?php echo $total_students; ?></h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Students</p>
+                    <h3 class="text-2xl font-bold text-slate-800"><?php echo number_format($total_students); ?></h3>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center hover:shadow-md transition">
                 <div class="p-4 bg-purple-50 text-purple-600 rounded-2xl mr-4 text-2xl">🎓</div>
                 <div>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Programs</p>
-                    <h3 class="text-2xl font-bold text-slate-800"><?php echo $total_courses; ?></h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Programs</p>
+                    <h3 class="text-2xl font-bold text-slate-800"><?php echo number_format($total_courses); ?></h3>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center hover:shadow-md transition">
                 <div class="p-4 bg-green-50 text-green-600 rounded-2xl mr-4 text-2xl">✅</div>
                 <div>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Enrolled</p>
-                    <h3 class="text-2xl font-bold text-slate-800"><?php echo $enrolled_count; ?></h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Enrolled Now</p>
+                    <h3 class="text-2xl font-bold text-slate-800"><?php echo number_format($enrolled_count); ?></h3>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center hover:shadow-md transition">
                 <div class="p-4 bg-orange-50 text-orange-600 rounded-2xl mr-4 text-2xl">⏳</div>
                 <div>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Pending</p>
-                    <h3 class="text-2xl font-bold text-slate-800"><?php echo $pending_count; ?></h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Pending Enrollment</p>
+                    <h3 class="text-2xl font-bold text-slate-800"><?php echo number_format($pending_count); ?></h3>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center hover:shadow-md transition">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 ring-2 ring-indigo-100 flex items-center hover:shadow-md transition">
                 <div class="p-4 bg-indigo-50 text-indigo-600 rounded-2xl mr-4 text-2xl">📜</div>
                 <div>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Graduating</p>
-                    <h3 class="text-2xl font-bold text-slate-800"><?php echo $graduating_count; ?></h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Graduating Class</p>
+                    <h3 class="text-2xl font-bold text-slate-800"><?php echo number_format($graduating_count); ?></h3>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center hover:shadow-md transition">
                 <div class="p-4 bg-red-50 text-red-600 rounded-2xl mr-4 text-2xl">🛑</div>
                 <div>
-                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Dropped</p>
-                    <h3 class="text-2xl font-bold text-slate-800"><?php echo $dropped_count; ?></h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Dropped Students</p>
+                    <h3 class="text-2xl font-bold text-slate-800"><?php echo number_format($dropped_count); ?></h3>
                 </div>
             </div>
 
@@ -112,7 +116,7 @@ $dropped_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as coun
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </span>
-                Hampton SIS is online and running.
+                Hampton SIS is online. Database connections are active.
             </div>
         </div>
     </main>

@@ -7,6 +7,18 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
+// --- HELPER FUNCTION PARA SA STANDING ---
+function getStanding($year) {
+    switch($year) {
+        case '1': return 'Freshman';
+        case '2': return 'Sophomore';
+        case '3': return 'Junior';
+        case '4': return 'Senior';
+        case 'Graduating': return 'Graduating';
+        default: return 'N/A';
+    }
+}
+
 // --- 1. BACKEND LOGIC (CRUD) ---
 
 // ADD STUDENT
@@ -14,11 +26,13 @@ if (isset($_POST['add_student'])) {
     $sid = mysqli_real_escape_string($conn, $_POST['student_id']);
     $name = mysqli_real_escape_string($conn, $_POST['fullname']);
     $course = mysqli_real_escape_string($conn, $_POST['course']);
+    $year_level = mysqli_real_escape_string($conn, $_POST['year_level']);
     $gender = $_POST['gender'];
     $bday = $_POST['birthday'];
     
-    $query = "INSERT INTO students (student_id, fullname, course, gender, birthday, status, enrollment_status) 
-              VALUES ('$sid', '$name', '$course', '$gender', '$bday', 'Uncleared', 'Pending')";
+    // Default values for new students: Uncleared status and Pending enrollment
+    $query = "INSERT INTO students (student_id, fullname, course, year_level, gender, birthday, status, enrollment_status) 
+              VALUES ('$sid', '$name', '$course', '$year_level', '$gender', '$bday', 'Uncleared', 'Pending')";
     
     if(mysqli_query($conn, $query)) {
         header("Location: manage_students.php?msg=added");
@@ -28,44 +42,63 @@ if (isset($_POST['add_student'])) {
     exit();
 }
 
-// UPDATE STUDENT (Personal Info - Gi-update para sa get_student_details.php form)
+// UPDATE STUDENT (Full fix for all personal info + enrollment status)
 if (isset($_POST['update_student'])) {
-    $old_sid = mysqli_real_escape_string($conn, $_POST['old_student_id']);
-    $new_sid = mysqli_real_escape_string($conn, $_POST['student_id']);
-    $name    = mysqli_real_escape_string($conn, $_POST['fullname']);
-    $course  = mysqli_real_escape_string($conn, $_POST['course']);
-    $gender  = mysqli_real_escape_string($conn, $_POST['gender']);
-    $bday    = mysqli_real_escape_string($conn, $_POST['birthday']);
+    $old_sid    = mysqli_real_escape_string($conn, $_POST['old_student_id']);
+    $new_sid    = mysqli_real_escape_string($conn, $_POST['student_id']);
+    $name       = mysqli_real_escape_string($conn, $_POST['fullname']);
+    $course     = mysqli_real_escape_string($conn, $_POST['course']);
+    $year_level = mysqli_real_escape_string($conn, $_POST['year_level']);
+    $gender     = mysqli_real_escape_string($conn, $_POST['gender']);
+    $bday       = mysqli_real_escape_string($conn, $_POST['birthday']);
+    
+    // Bag-ong Personal Fields
+    $birthplace  = mysqli_real_escape_string($conn, $_POST['birthplace']);
+    $religion    = mysqli_real_escape_string($conn, $_POST['religion']);
+    $nationality = mysqli_real_escape_string($conn, $_POST['nationality']);
+    $contact     = mysqli_real_escape_string($conn, $_POST['contact']);
+    $email       = mysqli_real_escape_string($conn, $_POST['email']);
+
+    // Enrollment status (Para mo-update ang Dashboard Enrolled count)
+    $enrollment_status = mysqli_real_escape_string($conn, $_POST['enrollment_status'] ?? 'Pending');
+    $clearance_status  = mysqli_real_escape_string($conn, $_POST['status'] ?? 'Uncleared');
     
     $query = "UPDATE students SET 
               student_id='$new_sid', 
               fullname='$name', 
               course='$course', 
+              year_level='$year_level',
               gender='$gender', 
-              birthday='$bday' 
+              birthday='$bday',
+              birthplace='$birthplace',
+              religion='$religion',
+              nationality='$nationality',
+              contact='$contact',
+              email='$email',
+              enrollment_status='$enrollment_status',
+              status='$clearance_status'
               WHERE student_id='$old_sid'";
 
     if(mysqli_query($conn, $query)) {
         header("Location: manage_students.php?msg=updated&student_id=$new_sid");
     } else {
-        die("Error: " . mysqli_error($conn));
+        die("Error Updating Records: " . mysqli_error($conn));
     }
     exit();
 }
 
-// UPDATE STUDENT GRADE (Base sa imong Table: id, student_id, grade)
+// SAVE GRADE
 if (isset($_POST['save_grade'])) {
-    $enrollment_id = intval($_POST['enrollment_id']); // primary key 'id'
-    $grade         = mysqli_real_escape_string($conn, $_POST['grade']);
-    $student_id    = mysqli_real_escape_string($conn, $_POST['student_id']);
+    $enrollment_id = intval($_POST['enrollment_id']);
+    $grade = mysqli_real_escape_string($conn, $_POST['grade']);
+    $student_id = mysqli_real_escape_string($conn, $_POST['student_id']);
 
     $query = "UPDATE enrollments SET grade = '$grade' WHERE id = $enrollment_id";
     
     if(mysqli_query($conn, $query)) {
-        // I-pass ang student_id sa URL aron mo-auto open ang modal human sa refresh
         header("Location: manage_students.php?msg=grade_updated&student_id=$student_id");
     } else {
-        die("Error updating grade: " . mysqli_error($conn));
+        die("SQL ERROR: " . mysqli_error($conn));
     }
     exit();
 }
@@ -80,6 +113,13 @@ if (isset($_GET['delete'])) {
 
 // Fetch all students
 $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC");
+
+// Fetch Courses for Dropdown
+$course_options = mysqli_query($conn, "SELECT * FROM courses ORDER BY course_alias ASC");
+$courses_array = [];
+while($c = mysqli_fetch_assoc($course_options)) {
+    $courses_array[] = $c;
+}
 ?>
 
 <!DOCTYPE html>
@@ -89,7 +129,11 @@ $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC")
     <title>Manage Students | Hampton SIS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; }</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modal-scroll::-webkit-scrollbar { width: 6px; }
+        .modal-scroll::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 10px; }
+    </style>
 </head>
 <body class="bg-slate-50 flex text-slate-800">
 
@@ -98,8 +142,8 @@ $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC")
     <main class="ml-64 flex-1 p-8">
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-3xl font-bold">Student Management</h1>
-                <p class="text-slate-500 text-sm">Centralized control for student records and academics.</p>
+                <h1 class="text-3xl font-bold text-slate-900">Student Management</h1>
+                <p class="text-slate-500 text-sm">Update profile, manage grades, and track academic standing.</p>
             </div>
             <button onclick="openAddModal()" class="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition">
                 + Add New Student
@@ -107,39 +151,60 @@ $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC")
         </div>
 
         <?php if(isset($_GET['msg'])): ?>
-            <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm font-bold animate-pulse">
-                ✅ Success: <?php echo ucwords(str_replace('_', ' ', $_GET['msg'])); ?>
+            <div class="mb-6 p-4 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-100 flex items-center gap-2 animate-bounce">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                Success: <?php echo ucwords(str_replace('_', ' ', $_GET['msg'])); ?>
             </div>
         <?php endif; ?>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <table class="w-full text-left">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <table class="w-full text-left border-collapse">
                 <thead class="bg-slate-50 border-b border-slate-200 uppercase text-[10px] font-bold text-slate-400 tracking-widest">
                     <tr>
-                        <th class="px-6 py-4">Student ID</th>
-                        <th class="px-6 py-4">Full Name</th>
-                        <th class="px-6 py-4">Course</th>
+                        <th class="px-6 py-4">Student Info</th>
+                        <th class="px-6 py-4">Course & Standing</th>
+                        <th class="px-6 py-4 text-center">Enrollment Status</th>
                         <th class="px-6 py-4 text-center">Clearance</th>
                         <th class="px-6 py-4 text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    <?php while($row = mysqli_fetch_assoc($result)): ?>
-                    <tr class="hover:bg-slate-50 transition text-sm">
-                        <td class="px-6 py-4 font-mono font-bold text-slate-600"><?php echo $row['student_id']; ?></td>
-                        <td class="px-6 py-4 font-semibold text-slate-900"><?php echo $row['fullname']; ?></td>
-                        <td class="px-6 py-4"><?php echo $row['course']; ?></td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold <?php echo ($row['status'] == 'Cleared') ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'; ?>">
-                                <?php echo strtoupper($row['status'] ?? 'UNCLEARED'); ?>
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-center space-x-3">
-                            <button onclick="viewStudent('<?php echo $row['student_id']; ?>')" class="text-blue-600 font-bold hover:underline">View & Grade</button>
-                            <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirm('Delete this student?')" class="text-red-500 font-bold hover:underline">Delete</a>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
+                    <?php if(mysqli_num_rows($result) > 0): ?>
+                        <?php while($row = mysqli_fetch_assoc($result)): ?>
+                        <tr class="hover:bg-slate-50 transition text-sm">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-900"><?php echo $row['fullname']; ?></div>
+                                <div class="font-mono text-[11px] text-blue-600"><?php echo $row['student_id']; ?></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-slate-700 font-semibold uppercase text-[11px]"><?php echo $row['course']; ?></div>
+                                <div class="text-[11px] text-slate-500 italic">
+                                    <?php echo getStanding($row['year_level'] ?? ''); ?>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold 
+                                    <?php echo ($row['enrollment_status'] == 'Enrolled') ? 'bg-blue-100 text-blue-600' : 
+                                               (($row['enrollment_status'] == 'Dropped') ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'); ?>">
+                                    <?php echo strtoupper($row['enrollment_status'] ?? 'PENDING'); ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold <?php echo ($row['status'] == 'Cleared') ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-400'; ?>">
+                                    <?php echo strtoupper($row['status'] ?? 'UNCLEARED'); ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center space-x-3">
+                                <button onclick="viewStudent('<?php echo $row['student_id']; ?>')" class="text-blue-600 font-bold hover:underline">View & Grade</button>
+                                <a href="?delete=<?php echo $row['id']; ?>" onclick="return confirm('Delete this student?')" class="text-red-500 font-bold hover:underline">Delete</a>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr><td colspan="5" class="px-6 py-20 text-center text-slate-400 italic">No students registered yet.</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -154,7 +219,7 @@ $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC")
             <form action="manage_students.php" method="POST" class="grid grid-cols-2 gap-4">
                 <div class="col-span-2 md:col-span-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Student ID</label>
-                    <input type="text" name="student_id" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" name="student_id" required placeholder="e.g. 2024-0001" class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="col-span-2 md:col-span-1">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Birthday</label>
@@ -162,17 +227,27 @@ $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC")
                 </div>
                 <div class="col-span-2">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Full Name</label>
-                    <input type="text" name="fullname" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" name="fullname" required placeholder="Last Name, First Name M.I." class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Course</label>
-                    <input type="text" name="course" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+                    <select name="course" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                        <option value="">-- Select Course --</option>
+                        <?php foreach($courses_array as $c): ?>
+                            <option value="<?php echo $c['course_alias']; ?>">
+                                <?php echo $c['course_alias']; ?> - <?php echo $c['major']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gender</label>
-                    <select name="gender" class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Year Level</label>
+                    <select name="year_level" required class="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                        <option value="Graduating">Graduating</option>
                     </select>
                 </div>
                 <div class="col-span-2 flex justify-end gap-3 mt-6">
@@ -185,14 +260,14 @@ $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC")
 
     <div id="viewStudentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative">
-            <button onclick="closeModal('viewStudentModal')" class="absolute top-6 right-8 text-slate-400 text-3xl z-10 hover:text-slate-600">&times;</button>
-            <div id="studentDetailContent" class="p-8 overflow-y-auto">
+            <button onclick="closeModal('viewStudentModal')" class="absolute top-6 right-8 text-slate-400 text-3xl z-20 hover:text-slate-600">&times;</button>
+            <div id="studentDetailContent" class="p-8 overflow-y-auto modal-scroll">
                 </div>
         </div>
     </div>
 
     <script>
-        // Auto-open modal if student_id is present in URL
+        // Check if there is a student_id in the URL to automatically open the modal
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const studentId = urlParams.get('student_id');
@@ -210,7 +285,7 @@ $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC")
             document.getElementById(id).classList.add('hidden');
             document.getElementById(id).classList.remove('flex');
             if(id === 'viewStudentModal') {
-                // Clear URL after closing modal
+                // Clear URL student_id without refreshing
                 window.history.replaceState({}, document.title, "manage_students.php");
             }
         }
@@ -232,7 +307,7 @@ $result = mysqli_query($conn, "SELECT * FROM students ORDER BY created_at DESC")
                     content.innerHTML = '<p class="text-center text-red-500 py-10">Error loading data.</p>';
                 });
         }
-
+        
         function switchModalTab(tab) {
             const infoSec = document.getElementById('section-personal-info');
             const gradeSec = document.getElementById('section-academic-grades');
