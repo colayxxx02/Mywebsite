@@ -1,0 +1,180 @@
+-- Adminer 5.4.2 MariaDB 11.8.6-MariaDB-0+deb13u1 from Debian dump
+
+SET NAMES utf8;
+SET time_zone = '+00:00';
+SET foreign_key_checks = 0;
+SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
+
+SET NAMES utf8mb4;
+
+DROP TABLE IF EXISTS `admins`;
+CREATE TABLE `admins` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `fullname` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+INSERT INTO `admins` (`id`, `fullname`, `email`, `password`, `created_at`) VALUES
+(1,	'Admin',	'admin@gmail.com',	'password',	'2026-04-20 09:16:48')
+ON DUPLICATE KEY UPDATE `id` = VALUES(`id`), `fullname` = VALUES(`fullname`), `email` = VALUES(`email`), `password` = VALUES(`password`), `created_at` = VALUES(`created_at`);
+
+DROP TABLE IF EXISTS `announcements`;
+CREATE TABLE `announcements` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `posted_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `posted_by` (`posted_by`),
+  CONSTRAINT `announcements_ibfk_1` FOREIGN KEY (`posted_by`) REFERENCES `admins` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+INSERT INTO `announcements` (`id`, `title`, `content`, `category`, `posted_by`, `created_at`) VALUES
+(2,	'Enrollment',	'You can now enroll.\r\nStart: April 20, 2026\r\nEnd: May 8, 2026\r\n\r\nAdding subjects will be on May 4-8, 2026',	'Enrollment',	NULL,	'2026-04-20 10:31:06')
+ON DUPLICATE KEY UPDATE `id` = VALUES(`id`), `title` = VALUES(`title`), `content` = VALUES(`content`), `category` = VALUES(`category`), `posted_by` = VALUES(`posted_by`), `created_at` = VALUES(`created_at`);
+
+DROP TABLE IF EXISTS `clearance_items`;
+CREATE TABLE `clearance_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `item_name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+
+DROP TABLE IF EXISTS `courses`;
+CREATE TABLE `courses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_name` varchar(100) NOT NULL,
+  `course_alias` varchar(20) NOT NULL,
+  `major` varchar(100) DEFAULT 'General',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+INSERT INTO `courses` (`id`, `course_name`, `course_alias`, `major`) VALUES
+(1,	'BS Information Technology',	'BSIT',	'Programming'),
+(2,	'BS Information Technology',	'BSIT',	'Networking')
+ON DUPLICATE KEY UPDATE `id` = VALUES(`id`), `course_name` = VALUES(`course_name`), `course_alias` = VALUES(`course_alias`), `major` = VALUES(`major`);
+
+DROP TABLE IF EXISTS `enrollments`;
+CREATE TABLE `enrollments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` varchar(20) NOT NULL,
+  `subject_id` int(11) NOT NULL,
+  `grade` varchar(5) DEFAULT 'INC',
+  `status` enum('Cart','Pending','Enrolled') DEFAULT 'Cart',
+  `enrolled_at` timestamp NULL DEFAULT current_timestamp(),
+  `enroll_date` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  KEY `subject_id` (`subject_id`),
+  CONSTRAINT `enrollments_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
+  CONSTRAINT `enrollments_ibfk_2` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+INSERT INTO `enrollments` (`id`, `student_id`, `subject_id`, `grade`, `status`, `enrolled_at`, `enroll_date`) VALUES
+(1,	'2026-0001',	3,	'1.0',	'Enrolled',	'2026-04-20 11:03:48',	'2026-04-20 11:03:33'),
+(2,	'2026-0001',	4,	'1.1',	'Enrolled',	'2026-04-20 11:03:48',	'2026-04-20 11:03:39'),
+(3,	'2026-0001',	6,	'1.1',	'Enrolled',	'2026-04-20 11:03:48',	'2026-04-20 11:03:40'),
+(4,	'2026-0001',	5,	'1.3',	'Enrolled',	'2026-04-20 11:03:48',	'2026-04-20 11:03:42'),
+(5,	'2026-0002',	3,	'INC',	'Enrolled',	'2026-04-24 03:20:22',	'2026-04-24 03:17:28'),
+(6,	'2026-0002',	4,	'INC',	'Enrolled',	'2026-04-24 03:20:22',	'2026-04-24 03:17:30'),
+(7,	'2026-0002',	5,	'INC',	'Enrolled',	'2026-04-24 03:20:22',	'2026-04-24 03:17:31'),
+(8,	'2026-0002',	6,	'INC',	'Enrolled',	'2026-04-24 03:20:22',	'2026-04-24 03:17:33')
+ON DUPLICATE KEY UPDATE `id` = VALUES(`id`), `student_id` = VALUES(`student_id`), `subject_id` = VALUES(`subject_id`), `grade` = VALUES(`grade`), `status` = VALUES(`status`), `enrolled_at` = VALUES(`enrolled_at`), `enroll_date` = VALUES(`enroll_date`);
+
+DROP TABLE IF EXISTS `enrollment_settings`;
+CREATE TABLE `enrollment_settings` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `semester` varchar(50) DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 0,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+INSERT INTO `enrollment_settings` (`id`, `semester`, `start_date`, `end_date`, `is_active`) VALUES
+(1,	'2nd Semester',	'2026-04-20',	'2026-05-08',	1)
+ON DUPLICATE KEY UPDATE `id` = VALUES(`id`), `semester` = VALUES(`semester`), `start_date` = VALUES(`start_date`), `end_date` = VALUES(`end_date`), `is_active` = VALUES(`is_active`);
+
+DROP TABLE IF EXISTS `students`;
+CREATE TABLE `students` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` varchar(20) NOT NULL,
+  `fullname` varchar(100) NOT NULL,
+  `gender` enum('Male','Female','Other') NOT NULL,
+  `course` varchar(100) NOT NULL,
+  `year_level` varchar(50) DEFAULT NULL,
+  `major` varchar(100) DEFAULT NULL,
+  `birthday` date NOT NULL,
+  `birthplace` varchar(255) DEFAULT NULL,
+  `religion` varchar(50) DEFAULT NULL,
+  `nationality` varchar(50) DEFAULT NULL,
+  `contact` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `status` enum('Cleared','Uncleared','Pending') DEFAULT 'Uncleared',
+  `enrollment_status` enum('Pending','Enrolled','Dropped','Graduating') DEFAULT 'Pending',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `library` tinyint(1) DEFAULT 0,
+  `accounting` tinyint(1) DEFAULT 0,
+  `department` tinyint(1) DEFAULT 0,
+  `dean` tinyint(1) DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `student_id` (`student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+INSERT INTO `students` (`id`, `student_id`, `fullname`, `gender`, `course`, `year_level`, `major`, `birthday`, `birthplace`, `religion`, `nationality`, `contact`, `email`, `status`, `enrollment_status`, `created_at`, `library`, `accounting`, `department`, `dean`) VALUES
+(2,	'2026-0001',	'Nica Polinar',	'Female',	'BSIT',	'Graduating',	'Programming',	'2004-02-16',	'',	'Roman Catholic',	'Filipino',	'09123456789',	'',	'Uncleared',	'Enrolled',	'2026-04-20 10:26:44',	0,	0,	0,	0),
+(3,	'2026-0002',	'Danica Polinar',	'Female',	'BSIT',	'Graduating',	NULL,	'2005-09-29',	NULL,	NULL,	NULL,	NULL,	NULL,	'Cleared',	'Pending',	'2026-04-23 11:06:29',	1,	1,	1,	1),
+(4,	'2026-0003',	'Nico Polinar',	'Male',	'BSIT',	'3',	NULL,	'2007-05-07',	NULL,	NULL,	NULL,	NULL,	NULL,	'Uncleared',	'Pending',	'2026-04-23 11:07:40',	0,	0,	0,	0),
+(5,	'2026-0004',	'Dianne Polinar',	'Female',	'BSIT',	'1',	NULL,	'2007-11-20',	NULL,	NULL,	NULL,	NULL,	NULL,	'Uncleared',	'Pending',	'2026-04-23 11:08:49',	0,	0,	0,	0),
+(6,	'2026-0005',	'Mico Polinar',	'Male',	'BSIT',	'1',	NULL,	'2007-07-02',	'Bontoc So. Leyte',	'Roman Catholic',	'Filipino',	'09123456789',	'mico@gmail.com',	'Cleared',	'Pending',	'2026-04-23 11:10:17',	1,	1,	1,	1)
+ON DUPLICATE KEY UPDATE `id` = VALUES(`id`), `student_id` = VALUES(`student_id`), `fullname` = VALUES(`fullname`), `gender` = VALUES(`gender`), `course` = VALUES(`course`), `year_level` = VALUES(`year_level`), `major` = VALUES(`major`), `birthday` = VALUES(`birthday`), `birthplace` = VALUES(`birthplace`), `religion` = VALUES(`religion`), `nationality` = VALUES(`nationality`), `contact` = VALUES(`contact`), `email` = VALUES(`email`), `status` = VALUES(`status`), `enrollment_status` = VALUES(`enrollment_status`), `created_at` = VALUES(`created_at`), `library` = VALUES(`library`), `accounting` = VALUES(`accounting`), `department` = VALUES(`department`), `dean` = VALUES(`dean`);
+
+DROP TABLE IF EXISTS `student_clearance`;
+CREATE TABLE `student_clearance` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` varchar(20) DEFAULT NULL,
+  `item_id` int(11) DEFAULT NULL,
+  `status` enum('Cleared','Uncleared') DEFAULT 'Uncleared',
+  `remarks` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  KEY `item_id` (`item_id`),
+  CONSTRAINT `student_clearance_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
+  CONSTRAINT `student_clearance_ibfk_2` FOREIGN KEY (`item_id`) REFERENCES `clearance_items` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+
+DROP TABLE IF EXISTS `subjects`;
+CREATE TABLE `subjects` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `subject_code` varchar(20) NOT NULL,
+  `subject_name` varchar(100) NOT NULL,
+  `year_level` varchar(50) DEFAULT NULL,
+  `units` int(11) NOT NULL,
+  `instructor` varchar(100) DEFAULT NULL,
+  `room` varchar(50) DEFAULT NULL,
+  `sched_day` varchar(50) DEFAULT NULL,
+  `sched_time_start` time DEFAULT NULL,
+  `sched_time_end` time DEFAULT NULL,
+  `max_slots` int(11) DEFAULT 40,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+
+INSERT INTO `subjects` (`id`, `subject_code`, `subject_name`, `year_level`, `units`, `instructor`, `room`, `sched_day`, `sched_time_start`, `sched_time_end`, `max_slots`) VALUES
+(3,	'IT101',	'INTRODUCTION TO COMPUTER',	'1st Year',	2,	'JAMES FLORES',	'ICT1',	'MTH',	'07:00:00',	'08:00:00',	40),
+(4,	'IT101L',	'INTRODUCTION TO COMPUTER',	'1st Year',	3,	'JAMES FLORES',	'LAB2',	'MTH',	'21:00:00',	'10:30:00',	40),
+(5,	'IT102',	'INTRODUCTION TO COMPUTING',	'1st Year',	2,	'FLORENTINO GOZO',	'ICT1',	'TF',	'13:00:00',	'14:00:00',	40),
+(6,	'IT102L',	'INTRODUCTION TO PROGRAMMING',	'1st Year',	3,	'FLORENTINO GOZO',	'LAB3',	'TF',	'19:00:00',	'20:02:00',	40)
+ON DUPLICATE KEY UPDATE `id` = VALUES(`id`), `subject_code` = VALUES(`subject_code`), `subject_name` = VALUES(`subject_name`), `year_level` = VALUES(`year_level`), `units` = VALUES(`units`), `instructor` = VALUES(`instructor`), `room` = VALUES(`room`), `sched_day` = VALUES(`sched_day`), `sched_time_start` = VALUES(`sched_time_start`), `sched_time_end` = VALUES(`sched_time_end`), `max_slots` = VALUES(`max_slots`);
+
+-- 2026-04-24 03:33:03 UTC
