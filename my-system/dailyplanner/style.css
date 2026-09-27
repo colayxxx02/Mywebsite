@@ -1,0 +1,458 @@
+/* ==========================================
+   DARK THEME VARIABLES & BACKGROUND CONFIG
+   ========================================== */
+:root {
+  --bg-dark: #0f172a;
+  --panel: rgba(30, 41, 59, 0.75); /* Semi-transparent Glassmorphic Panel */
+  --panel-solid: #1e293b;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --text: #f8fafc;
+  --text-light: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
+  --danger: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --sidebar-w: 260px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Global Layout with Background Image & Dark Overlay */
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.85)),
+              url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed;
+  background-size: cover;
+  color: var(--text);
+  overflow-x: hidden;
+  overflow-y: auto; /* Dili na maputol ang form */
+}
+
+/* APP CONTAINER */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ==========================================
+   SIDEBAR STYLING
+   ========================================== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.25rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 100;
+}
+
+.profile-box {
+  text-align: center;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+  margin-bottom: 0.75rem;
+}
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  color: var(--text-light);
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+.nav-btn:hover, .nav-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.logout-btn {
+  color: var(--danger);
+  text-decoration: none;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* ==========================================
+   MAIN CONTENT AREA (SCROLLABLE & NON-CUTOFF)
+   ========================================== */
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 100vh;
+  overflow-y: auto; /* Sigurado nga maka-scroll kung mahaba ang form */
+}
+
+/* Login Card Specifics */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.login-card {
+  background: var(--panel);
+  backdrop-filter: blur(16px);
+  padding: 2.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-card h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: var(--primary);
+}
+
+/* ==========================================
+   FORM CONTROLS & BUTTONS
+   ========================================== */
+.filter-bar, .form-container {
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.form-control, input, select, textarea {
+  background: #0a0e1a;
+  color: var(--text);
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.9rem;
+  transition: 0.2s ease;
+}
+
+select option {
+  background: #0a0e1a;
+  color: #f1f5f9;
+}
+
+.form-control:focus, input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+
+.btn-danger {
+  background: var(--danger);
+}
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+/* ==========================================
+   TABLES & BADGES
+   ========================================== */
+.table-wrapper {
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+th, td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--text-light);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Badges & Status Colors */
+.badge {
+  padding: 0.3rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-low { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+.badge-medium { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+.badge-high { background: rgba(248, 113, 113, 0.2); color: #f87171; }
+
+.status-pending { color: var(--warning); font-weight: 600; }
+.status-in_progress { color: #38bdf8; font-weight: 600; }
+.status-completed { color: var(--success); font-weight: 600; }
+.status-canceled { color: var(--danger); font-weight: 600; }
+html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #0b0f19;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .app-layout {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .main-content {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 1. SEARCH & FILTER BAR */
+        .search-filter-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .search-filter-box input {
+            background: #0b0f19;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 0.55rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .search-filter-box input[type="text"] {
+            flex: 1;
+        }
+
+        /* 2. MANAGE TASK HEADER & PAGINATION */
+        .manage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 0.75rem;
+        }
+        .manage-header h2 {
+            margin: 0 0 0.2rem 0;
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+        .manage-header p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .pagination-controls a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            transition: background 0.2s;
+        }
+        .pagination-controls a:hover {
+            background: #5b67f7;
+        }
+        .pagination-controls span.active-page {
+            color: #5b67f7;
+            font-weight: bold;
+            padding: 0 0.25rem;
+        }
+
+        /* 3. LIST SA TANAN TASK CONTAINER */
+        .task-list-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.25rem;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .table-responsive {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        .tasks-table th {
+            padding: 10px 8px;
+            color: #64748b;
+            font-size: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            background: #0d1322;
+            z-index: 2;
+        }
+        .tasks-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 0.85rem;
+        }
+
+        /* 4. FLOATING ADD BUTTON (FAB) */
+        .fab-add-btn {
+            position: absolute;
+            bottom: 1.75rem;
+            right: 2rem;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #5b67f7;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(91, 103, 247, 0.4);
+            border: none;
+            transition: transform 0.2s ease, background 0.2s ease;
+            z-index: 10;
+        }
+        .fab-add-btn:hover {
+            transform: scale(1.08);
+            background: #4c57e6;
+        }
+
+/* ==========================================
+   LOADING BUTTON STATE
+   ========================================== */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.75;
+}
+.btn-loading .btn-text { visibility: hidden; }
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-top: -8px;
+  margin-left: -8px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: btn-spin 0.65s linear infinite;
+}
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
